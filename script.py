@@ -137,7 +137,7 @@ if __name__ == '__main__':
                 file_size) + params_print('END'))
             COLOR_ARR = COLOR_ARR[:file_size]
 
-        bitout = open(colorfile + '.decode' + extension, 'wb')
+        bitout = open(colorfile.replace(FORMAT_OUTPUT, '') + '.decode' + extension, 'wb')
         bitout.write(binascii.a2b_hex(''.join(COLOR_ARR)))
         bitout.close()
 
