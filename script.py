@@ -6,14 +6,20 @@ import sys
 import math
 import argparse
 from pathlib import Path
-import numpy as np
-import scipy.misc as smp
+import binascii
 from PIL import Image
 from colorama import init
 from colorama import Fore, Style
 init()
 
+
+FORMAT_OUTPUT = '.datacolors.png'
+
+
 def params_print(key):
+    '''
+    Color cmd
+    '''
     values = {
         'INFO': Style.BRIGHT + Fore.CYAN,
         'OK': Style.BRIGHT + Fore.GREEN,
@@ -24,22 +30,34 @@ def params_print(key):
     }
     return values.get(key, Style.RESET_ALL)
 
-def hex_to_rgb(hex):
+def hex_to_rgb(hex_data):
+    '''
+    Convert hex to rgb
+    '''
     rgb = []
     for i in (0, 2, 4):
-        decimal = int(hex[i:i + 2], 16)
+        decimal = int(hex_data[i:i + 2], 16)
         rgb.append(decimal)
 
     return tuple(rgb)
 
 def hex_to_string(hex_text):
-    return bytes.fromhex(hex_text).decode('ASCII')
+    '''
+    Convert hex to string
+    '''
+    return bytes.fromhex(hex_text).decode('ASCII').replace('\x00', '')
 
-def rgb_to_hex(px_color):
-    r, g, b = px_color
-    return '%02X %02X %02X' % (r, g, b)
+def rgb_to_hex(pxcolor):
+    '''
+    Convert rgb to hex
+    '''
+    r_color, g_color, b_color = pxcolor
+    return '%02X %02X %02X' % (r_color, g_color, b_color)
 
 def string_to_hex(text):
+    '''
+    Convert string to hex
+    '''
     return text.encode('utf-8').hex()
 
 
@@ -63,11 +81,11 @@ if __name__ == '__main__':
         print('file not found: ' + colorfile)
         sys.exit(0)
 
-    filename = Path(colorfile).stem
+    FILENAME = Path(colorfile).stem
     extension = Path(colorfile).suffix
-    dirname = os.path.dirname(colorfile)
-    if dirname == '':
-        dirname = '.'
+    _DIRNAME = os.path.dirname(colorfile)
+    if _DIRNAME == '':
+        _DIRNAME = '.'
 
     print('-' * 46)
     print('File: ' + colorfile)
@@ -80,54 +98,51 @@ if __name__ == '__main__':
         print('SIZE: ' + str(color_w) + 'w | ' + str(color_h) + 'h')
         print('-' * 46)
 
-        color_arr = []
-        cnt_w, cnt_h = (1, 1)
+        COLOR_ARR = []
+        CNT_W, CNT_H = (1, 1)
 
-        while cnt_w < (color_w + 1):
-            while cnt_h < (color_h + 1):
-                px_color = color_image_rgb.getpixel((cnt_h-1, cnt_w-1))
+        while CNT_W < (color_w + 1):
+            while CNT_H < (color_h + 1):
+                px_color = color_image_rgb.getpixel((CNT_H-1, CNT_W-1))
                 if color_h == 1:
                     sys.stdout.write('[Decrypt] ' + str(
                         px_color) + ' | current line: ' + str(
-                        cnt_w) + '\r')
+                        CNT_W) + '\r')
                     sys.stdout.flush()
 
                 hex_color = rgb_to_hex(px_color)
                 for u_hex in hex_color.split(' '):
-                    color_arr.append(u_hex)
-                cnt_h += 1
+                    COLOR_ARR.append(u_hex)
+                CNT_H += 1
 
-            cnt_w += 1
-            cnt_h = 1
+            CNT_W += 1
+            CNT_H = 1
 
         print('GET DATA OK')
+        print('-' * 46)
 
-        file_size_hex = color_arr[:8]
-        color_arr = color_arr[8:]
-        print(file_size_hex)
+        extension_hex = COLOR_ARR[:8]
+        COLOR_ARR = COLOR_ARR[8:]
+        extension = hex_to_string(''.join(extension_hex))
 
-        print(hex_to_string(''.join(file_size_hex)))
+        file_size_hex = COLOR_ARR[:16]
+        COLOR_ARR = COLOR_ARR[16:]
+        file_size = int(hex_to_string(''.join(file_size_hex)))
 
-        extension_hex = color_arr[:16]
-        color_arr = color_arr[16:]
-        print(extension_hex)
+        COLOR_ARR_LEN = len(COLOR_ARR)
 
-        print(hex_to_string(''.join(extension_hex)))
+        if file_size != COLOR_ARR_LEN:
+            print(params_print('INFO'))
+            print('[SIZE] Change ' + str(COLOR_ARR_LEN) + ' to ' + str(
+                file_size) + params_print('END'))
+            COLOR_ARR = COLOR_ARR[:file_size]
 
-        sys.exit(0)
+        bitout = open(colorfile + '.decode' + extension, 'wb')
+        bitout.write(binascii.a2b_hex(''.join(COLOR_ARR)))
+        bitout.close()
 
-        print(color_arr)
-
-        sys.exit(0)
-
-        with open(colorfile + '.output', 'wb') as f:
-            for i in color_arr:
-
-                c = int(('0x' + i).encode(), 16)
-                h = hex(c)
-                print(h)
-
-                f.write(h.encode())
+        print(params_print('OK'))
+        print('[Decrypt] Finish' + params_print('END'))
 
     if colorout:
         file_size = os.path.getsize(colorfile)
@@ -153,9 +168,6 @@ if __name__ == '__main__':
 
         with open(colorfile, 'rb') as f:
             hexdata = extension_hex + file_size_hex + f.read().hex()
-
-            print(hexdata)
-
             data_arr, n = ([], 6)
             for index in range(0, len(hexdata), n):
                 data_arr.append(hexdata[index : index + n])
@@ -164,19 +176,17 @@ if __name__ == '__main__':
             print('img_dim  :', str(img_wh) + 'px2')
             print('-' * 46)
 
-            im = Image.new('RGB', (img_wh, img_wh))
-            color_arr = []
+            im = Image.new('RGB', (img_wh, img_wh), color=(255, 255, 255))
+            COLOR_ARR = []
 
             for data in data_arr:
-
                 sys.stdout.write('[Encrypt] ' + str(
                     data.ljust(6, '0')) + '\r')
                 sys.stdout.flush()
+                COLOR_ARR.append(hex_to_rgb(data.ljust(6, '0')))
 
-                color_arr.append(hex_to_rgb(data.ljust(6, '0')))
+            im.putdata(COLOR_ARR)
+            im.save(_DIRNAME + '/' + FILENAME + FORMAT_OUTPUT, quality=100, subsampling=0)
 
             print(params_print('OK'))
             print('[Encrypt] Finish' + params_print('END'))
-
-            im.putdata(color_arr)
-            im.save(dirname + '/' + filename + '.datacolors.jpg', quality=100, subsampling=0)
