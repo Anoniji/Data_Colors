@@ -53,6 +53,13 @@ if __name__ == '__main__':
         while cnt_w < (color_w + 1):
             while cnt_h < (color_h + 1):
                 px_color = color_image_rgb.getpixel((cnt_w-1, cnt_h-1))
+
+                if color_h == 1:
+                    sys.stdout.write('[encrypt] ' + str(
+                        px_color) + ' | current line: ' + str(
+                        cnt_w) + '\r')
+                    sys.stdout.flush()
+
                 hex_color = rgb_to_hex(px_color)
                 for u_hex in hex_color.split(' '):
                     color_arr.append(u_hex)
@@ -83,7 +90,6 @@ if __name__ == '__main__':
 
             len_arr = len(data_arr)
             img_h = int(math.ceil(len_arr/img_w))
-
 
             im = Image.new('RGB', (img_w, img_h))
             color_arr = []
