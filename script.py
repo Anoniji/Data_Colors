@@ -66,10 +66,12 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--file', type=str, required=True)
     parser.add_argument('-i', '--colorin', action='store_true')
     parser.add_argument('-o', '--colorout', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
     colorfile = args.file
     colorin = args.colorin
     colorout = args.colorout
+    verbose = args.verbose
 
     print(params_print('INFO'))
     print(r" ____      _          _____     _             ")
@@ -104,7 +106,7 @@ if __name__ == '__main__':
         while CNT_W < (color_w + 1):
             while CNT_H < (color_h + 1):
                 px_color = color_image_rgb.getpixel((CNT_H-1, CNT_W-1))
-                if color_h == 1:
+                if color_h == 1 and verbose:
                     sys.stdout.write('[Decrypt] ' + str(
                         px_color) + ' | current line: ' + str(
                         CNT_W) + '\r')
@@ -180,9 +182,10 @@ if __name__ == '__main__':
             COLOR_ARR = []
 
             for data in data_arr:
-                sys.stdout.write('[Encrypt] ' + str(
-                    data.ljust(6, '0')) + '\r')
-                sys.stdout.flush()
+                if verbose:
+                    sys.stdout.write('[Encrypt] ' + str(
+                        data.ljust(6, '0')) + '\r')
+                    sys.stdout.flush()
                 COLOR_ARR.append(hex_to_rgb(data.ljust(6, '0')))
 
             im.putdata(COLOR_ARR)
