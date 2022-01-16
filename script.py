@@ -103,6 +103,9 @@ if __name__ == '__main__':
         COLOR_ARR = []
         CNT_W, CNT_H = (1, 1)
 
+        if not verbose:
+            print('[Decrypt] Please wait...')
+
         while CNT_W < (color_w + 1):
             while CNT_H < (color_h + 1):
                 px_color = color_image_rgb.getpixel((CNT_H-1, CNT_W-1))
@@ -180,6 +183,9 @@ if __name__ == '__main__':
 
             im = Image.new('RGB', (img_wh, img_wh), color=(255, 255, 255))
             COLOR_ARR = []
+
+            if not verbose:
+                print('[Encrypt] Please wait...')
 
             for data in data_arr:
                 if verbose:
