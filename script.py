@@ -62,14 +62,13 @@ def string_to_hex(text):
     '''
     return text.encode('utf-8').hex()
 
-def password_to_intlist(password):
+def password_to_intlist(pswd_input):
     '''
     Convert Password to int list
     '''
     global VERSION_CODE
     incm, output = (0, [VERSION_CODE])
-    for char in password:
-
+    for char in pswd_input:
         int_out = ord(char)
         incm += int_out
         output.append(incm)
@@ -77,7 +76,7 @@ def password_to_intlist(password):
     return output
 
 
-def data_encode(pswd_input, hex_color, pos):
+def data_encode(pswd_input, hexcolor, pos):
     '''
     Data encoder
     '''
@@ -88,9 +87,9 @@ def data_encode(pswd_input, hex_color, pos):
 
     for ipos in PASSWORD_STK:
         if pos % ipos == 1:
-            hex_color = hex_color[::-1]
+            hexcolor = hexcolor[::-1]
 
-    return hex_color
+    return hexcolor
 
 
 if __name__ == '__main__':
@@ -171,9 +170,9 @@ if __name__ == '__main__':
 
         psw_hex = COLOR_ARR[:3]
         COLOR_ARR = COLOR_ARR[3:]
-        psw = ''.join(psw_hex)
+        PSW_I = ''.join(psw_hex)
 
-        if psw == 'FFFFFF' and not password:
+        if PSW_I == 'FFFFFF' and not password:
             print(params_print('FAIL'))
             print('Please set password' + params_print('END'))
             sys.exit(1)
@@ -189,8 +188,8 @@ if __name__ == '__main__':
         if password:
             cnt, data_arr, n = (9, [], 3)
             for index in range(0, len(COLOR_ARR), n):
-                f_data = "".join(COLOR_ARR[index : index + n])
-                data_arr.append(data_encode(password, f_data, cnt))
+                F_DATA_I = "".join(COLOR_ARR[index : index + n])
+                data_arr.append(data_encode(password, F_DATA_I, cnt))
                 cnt += 1
             COLOR_ARR = data_arr
 
@@ -223,24 +222,24 @@ if __name__ == '__main__':
         print('file_size:', file_size_hex, len(file_size_hex))
         print('extension:', extension_hex, len(extension_hex))
 
-        psw = '000000'
+        PSW_O = '000000'
         if password:
             print('password : ***')
-            psw = 'FFFFFF'
+            PSW_O = 'FFFFFF'
         else:
             print('password : not set')
 
-        cnt = 0
+        CNT_O = 0
         with open(colorfile, 'rb') as f:
-            hexdata = extension_hex + file_size_hex + psw + f.read().hex()
+            hexdata = extension_hex + file_size_hex + PSW_O + f.read().hex()
             data_arr, n = ([], 6)
             for index in range(0, len(hexdata), n):
-                f_data = hexdata[index : index + n]
-                if password and cnt > 9:
-                    f_data = data_encode(password, f_data, cnt)
+                f_data_o = hexdata[index : index + n]
+                if password and CNT_O > 9:
+                    f_data_o = data_encode(password, f_data_o, CNT_O)
 
-                data_arr.append(f_data)
-                cnt += 1
+                data_arr.append(f_data_o)
+                CNT_O += 1
 
             img_wh = math.ceil(math.sqrt(len(data_arr)))
             print('img_dim  :', str(img_wh) + 'px2')
