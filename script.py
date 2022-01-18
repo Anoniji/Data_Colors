@@ -13,7 +13,9 @@ from colorama import Fore, Style
 init()
 
 
+VERSION_CODE = 16
 FORMAT_OUTPUT = '.datacolors.png'
+PASSWORD_STK = False
 
 
 def params_print(key):
@@ -60,32 +62,51 @@ def string_to_hex(text):
     '''
     return text.encode('utf-8').hex()
 
+def password_to_intlist(password):
+    '''
+    Convert Password to int list
+    '''
+    global VERSION_CODE
+    incm, output = (0, [VERSION_CODE])
+    for char in password:
 
-def data_encode(password, f_data):
+        int_out = ord(char)
+        incm += int_out
+        output.append(incm)
+
+    return output
+
+
+def data_encode(pswd_input, hex_color, pos):
     '''
     Data encoder
     '''
-    return str(hex(f_data ^ password))[2:]
+    global PASSWORD_STK
 
-def data_decode(password, f_data):
-    '''
-    Data decoder
-    '''
-    return str(hex(f_data ^ password))[2:]
+    if not PASSWORD_STK:
+        PASSWORD_STK = password_to_intlist(pswd_input)
+
+    for ipos in PASSWORD_STK:
+        if pos % ipos == 1:
+            hex_color = hex_color[::-1]
+
+    return hex_color
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str, required=True)
     parser.add_argument('-i', '--colorin', action='store_true')
     parser.add_argument('-o', '--colorout', action='store_true')
-    parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-p', '--password', type=str)
+    parser.add_argument('-v', '--verbose', action='store_true')
+
     args = parser.parse_args()
     colorfile = args.file
     colorin = args.colorin
     colorout = args.colorout
-    verbose = args.verbose
     password = args.password
+    verbose = args.verbose
 
     print(params_print('INFO'))
     print(r" ____      _          _____     _             ")
@@ -165,13 +186,13 @@ if __name__ == '__main__':
                 file_size) + params_print('END'))
             COLOR_ARR = COLOR_ARR[:file_size]
 
-        # if password:
-        #     data_arr, n = ([], 3)
-        #     for index in range(0, len(COLOR_ARR), n):
-        #         f_data = "".join(COLOR_ARR[index : index + n])
-        #         data_arr.append(data_decode(0x12efee, int(f_data, 16)).rjust(6, '0'))
-
-        #     COLOR_ARR = data_arr
+        if password:
+            cnt, data_arr, n = (9, [], 3)
+            for index in range(0, len(COLOR_ARR), n):
+                f_data = "".join(COLOR_ARR[index : index + n])
+                data_arr.append(data_encode(password, f_data, cnt))
+                cnt += 1
+            COLOR_ARR = data_arr
 
         bitout = open(colorfile.replace(FORMAT_OUTPUT, '') + '.decode' + extension, 'wb')
         bitout.write(binascii.a2b_hex(''.join(COLOR_ARR)))
@@ -215,8 +236,8 @@ if __name__ == '__main__':
             data_arr, n = ([], 6)
             for index in range(0, len(hexdata), n):
                 f_data = hexdata[index : index + n]
-                # if password and cnt > 9:
-                #     f_data = data_encode(0x12efee, int(f_data, 16))
+                if password and cnt > 9:
+                    f_data = data_encode(password, f_data, cnt)
 
                 data_arr.append(f_data)
                 cnt += 1
