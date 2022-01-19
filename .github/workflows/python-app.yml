@@ -5,6 +5,11 @@ name: Python application
 
 on: [push]
 
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
 jobs:
   build:
 
@@ -39,3 +44,9 @@ jobs:
     - name: Build binary
       run: |
         python setup.py build
+    - name: Archive Release
+      uses: thedoctor0/zip-release@master
+      with:
+        type: 'zip'
+        filename: 'release.zip'
+        directory: './_build/'
