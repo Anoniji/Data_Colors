@@ -24,7 +24,7 @@ jobs:
         sudo apt-get install libz-dev
         sudo apt-get install libxau-dev
         sudo apt-get install libxdmcp-dev
-        sudo apt-get install libpng16-dev
+        sudo apt-get install libpng-dev
         sudo apt-get install libwebp-dev
     - name: Install dependencies
       run: |
