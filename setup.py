@@ -22,17 +22,7 @@ setup(
         'build_exe': {
             'path': sys.path,
             'includes': [],
-            'excludes': [
-                'numpy',
-                'matplotlib',
-                'tkinter',
-                'urllib3',
-                'zmq',
-                'urllib',
-                'requests',
-                'PyQt4',
-                'PyQt5',
-            ],
+            'excludes': [],
             'packages': [],
             'optimize': 2,
             'silent': True,
