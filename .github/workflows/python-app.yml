@@ -5,11 +5,6 @@ name: Python application
 
 on: [push]
 
-cache:
-  paths:
-    - .cache/pip
-    - venv/
-
 jobs:
   build:
 
