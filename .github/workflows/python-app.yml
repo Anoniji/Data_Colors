@@ -19,7 +19,13 @@ jobs:
 
     - name: Prepare system
       run: |
-        sudo apt-get install imagemagick
+        sudo apt-get install liblzma-devel
+        sudo apt-get install libjpeg-devel
+        sudo apt-get install libz-devel
+        sudo apt-get install libXau-devel
+        sudo apt-get install libXdmcp-devel
+        sudo apt-get install libpng16-devel
+        sudo apt-get install libwebp-devel
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
