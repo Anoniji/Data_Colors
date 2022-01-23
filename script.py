@@ -13,8 +13,8 @@ from colorama import Fore, Style
 init()
 
 
-VERSION_CODE = 16
-FORMAT_OUTPUT = '.datacolors.png'
+VERSION_CODE = 17
+FORMAT_OUTPUT = '.datacolors'
 PASSWORD_STK = False
 
 
@@ -94,7 +94,8 @@ def data_encode(pswd_input, hexcolor, pos):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=True)
+    parser.add_argument('-f', '--file', type=str)
+    parser.add_argument('-d', '--directory', type=str)
     parser.add_argument('-i', '--colorin', action='store_true')
     parser.add_argument('-o', '--colorout', action='store_true')
     parser.add_argument('-p', '--password', type=str)
@@ -102,10 +103,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     colorfile = args.file
+    colordir = args.directory
     colorin = args.colorin
     colorout = args.colorout
     password = args.password
     verbose = args.verbose
+
+    if colorfile is None and colordir is None:
+        print(params_print('FAIL'))
+        print('please set -d or -f parameter' + params_print('END'))
+        sys.exit(0)
 
     print(params_print('INFO'))
     print(r" ____      _          _____     _             ")
@@ -113,8 +120,14 @@ if __name__ == '__main__':
     print(r"|  |  | .'|  _| .'|  |   --| . | | . |  _|_ -|")
     print(r"|____/|__,|_| |__,|  |_____|___|_|___|_| |___|" + params_print('END'))
 
-    if not os.path.isfile(colorfile):
-        print('file not found: ' + colorfile)
+    if colorfile and not os.path.isfile(colorfile):
+        print(params_print('FAIL'))
+        print('file not found: ' + colorfile + params_print('END'))
+        sys.exit(0)
+
+    if colordir and not os.path.isdir(colordir):
+        print(params_print('FAIL'))
+        print('file not found: ' + colorfile + params_print('END'))
         sys.exit(0)
 
     FILENAME = Path(colorfile).stem
@@ -127,6 +140,11 @@ if __name__ == '__main__':
     print('File: ' + colorfile)
 
     if colorin:
+        if extension != FORMAT_OUTPUT:
+            print(params_print('FAIL'))
+            print('incorrect file format' + params_print('END'))
+            sys.exit(0)
+
         color_image = Image.open(colorfile)
         color_w, color_h = color_image.size
         color_image_rgb = color_image.convert("RGB")
@@ -259,7 +277,10 @@ if __name__ == '__main__':
                 COLOR_ARR.append(hex_to_rgb(data.ljust(6, '0')))
 
             im.putdata(COLOR_ARR)
-            im.save(_DIRNAME + '/' + FILENAME + FORMAT_OUTPUT, quality=100, subsampling=0)
+            im.save(_DIRNAME + '/' + FILENAME + '.png', quality=100, subsampling=0)
+            os.rename(
+                _DIRNAME + '/' + FILENAME + '.png',
+                _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
 
             print(params_print('OK'))
             print('[Encrypt] Finish' + params_print('END'))
