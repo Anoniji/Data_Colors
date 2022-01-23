@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import math
+import shutil
 import argparse
 from pathlib import Path
 import binascii
@@ -94,6 +95,21 @@ def data_encode(pswd_input, hexcolor, pos):
     return hexcolor
 
 
+def file_clean(filename_c):
+    '''
+    File cleaner
+    '''
+    if os.path.isfile(filename_c):
+        try:
+            os.remove(filename_c)
+        except Exception:
+            print(params_print('FAIL'))
+            print('Unable to delete temporary file,')
+            print('try again in 5 seconds ' + params_print('END'))
+            time.sleep(5)
+            os.remove(filename_c)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str)
@@ -110,9 +126,6 @@ if __name__ == '__main__':
     colorout = args.colorout
     password = args.password
     verbose = args.verbose
-    FILENAME = None
-    extension = None
-    _DIRNAME = None
 
     if colorfile is None and colordir is None:
         print(params_print('FAIL'))
@@ -125,6 +138,11 @@ if __name__ == '__main__':
     print(r"|  |  | .'|  _| .'|  |   --| . | | . |  _|_ -|")
     print(r"|____/|__,|_| |__,|  |_____|___|_|___|_| |___|" + params_print('END'))
 
+    if colordir and colorin:
+        print(params_print('INFO'))
+        print('please use -f for decompress directory datacolors' + params_print('END'))
+        sys.exit(0)
+
     if colorfile and not os.path.isfile(colorfile):
         print(params_print('FAIL'))
         print('file not found: ' + colorfile + params_print('END'))
@@ -132,19 +150,30 @@ if __name__ == '__main__':
 
     if colordir and not os.path.isdir(colordir):
         print(params_print('FAIL'))
-        print('file not found: ' + colorfile + params_print('END'))
+        print('directory not found: ' + colordir + params_print('END'))
         sys.exit(0)
 
     print('-' * 46)
 
-    if colorfile:
-        FILENAME = Path(colorfile).stem
-        extension = Path(colorfile).suffix
-        _DIRNAME = os.path.dirname(colorfile)
-        if _DIRNAME == '':
-            _DIRNAME = '.'
+    if colorout and colordir:
+        print(params_print('INFO'))
+        print('Prepare directory' + params_print('END'))
 
-        print('File: ' + colorfile)
+        try:
+            shutil.make_archive('compressed', 'zip', colordir)
+        except Exception as err:
+            print(params_print('WARNING'))
+            print('Compress_return: ' + err + params_print('END'))
+        finally:
+            colorfile = 'compressed.zip'
+
+    FILENAME = Path(colorfile).stem
+    extension = Path(colorfile).suffix
+    _DIRNAME = os.path.dirname(colorfile)
+    if _DIRNAME == '':
+        _DIRNAME = '.'
+
+    print('File: ' + colorfile)
 
     if colorin:
         if extension != FORMAT_OUTPUT:
@@ -203,9 +232,8 @@ if __name__ == '__main__':
 
         # Decode Directory
         if TYPE_I == 'FFFFFF':
-            print(params_print('FAIL'))
-            print('The function is not available at the moment' + params_print('END'))
-            sys.exit(1)
+            print(params_print('WARNING'))
+            print('Automatic decompression is currently not available' + params_print('END'))
 
         if PSW_I == 'FFFFFF' and not password:
             print(params_print('FAIL'))
@@ -241,12 +269,6 @@ if __name__ == '__main__':
             'END'))
 
     if colorout:
-        if colordir:
-            # Decode Directory
-            print(params_print('FAIL'))
-            print('The function is not available at the moment' + params_print('END'))
-            sys.exit(1)
-
         file_size = os.path.getsize(colorfile)
 
         print('SIZE: ' + str(file_size) + ' bytes')
@@ -259,6 +281,10 @@ if __name__ == '__main__':
         if len(file_size_hex) > 32:
             print(params_print('FAIL'))
             print('The file size is too large' + params_print('END'))
+
+            if colordir:
+                file_clean('./compressed.zip')
+
             sys.exit(1)
 
         file_size_hex, extension_hex = (
@@ -287,48 +313,53 @@ if __name__ == '__main__':
             D_FRAME = D_FRAME + '000000'
 
         CNT_O, CNT_START = (0, int(len(D_FRAME)/6))
-        with open(colorfile, 'rb') as f:
-            hexdata = D_FRAME + f.read().hex()
-            data_arr, n = ([], 6)
-            for index in range(0, len(hexdata), n):
-                f_data_o = hexdata[index : index + n]
-                if password and CNT_O > CNT_START:
-                    f_data_o = data_encode(password, f_data_o, CNT_O)
 
-                data_arr.append(f_data_o)
-                CNT_O += 1
+        read_file = open(colorfile, 'rb')
+        hexdata = D_FRAME + read_file.read().hex()
+        data_arr, n = ([], 6)
+        for index in range(0, len(hexdata), n):
+            f_data_o = hexdata[index : index + n]
+            if password and CNT_O > CNT_START:
+                f_data_o = data_encode(password, f_data_o, CNT_O)
 
-            img_wh = math.ceil(math.sqrt(len(data_arr)))
-            print('img_dim  :', str(img_wh) + 'px2')
-            print('-' * 46)
+            data_arr.append(f_data_o)
+            CNT_O += 1
 
-            im = Image.new('RGB', (img_wh, img_wh), color=(255, 255, 255))
-            COLOR_ARR = []
+        img_wh = math.ceil(math.sqrt(len(data_arr)))
+        print('img_dim  :', str(img_wh) + 'px2')
+        print('-' * 46)
 
-            if not verbose:
-                print('[Encrypt] Please wait...')
+        im = Image.new('RGB', (img_wh, img_wh), color=(255, 255, 255))
+        COLOR_ARR = []
 
-            for data in data_arr:
-                if verbose:
-                    sys.stdout.write('[Encrypt] ' + str(
-                        data.ljust(6, '0')) + '\r')
-                    sys.stdout.flush()
-                COLOR_ARR.append(hex_to_rgb(data.ljust(6, '0')))
+        if not verbose:
+            print('[Encrypt] Please wait...')
 
-            im.putdata(COLOR_ARR)
-            im.save(_DIRNAME + '/' + FILENAME + '.png', quality=100, subsampling=0)
+        for data in data_arr:
+            if verbose:
+                sys.stdout.write('[Encrypt] ' + str(
+                    data.ljust(6, '0')) + '\r')
+                sys.stdout.flush()
+            COLOR_ARR.append(hex_to_rgb(data.ljust(6, '0')))
 
-            # Check if exist
-            if os.path.isfile(_DIRNAME + '/' + FILENAME + FORMAT_OUTPUT):
-                print(params_print('WARNING'))
-                print('Since the file is already present,')
-                print('the old version has been overwritten' + params_print('END'))
-                os.remove( _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
-                time.sleep(1)
+        im.putdata(COLOR_ARR)
+        im.save(_DIRNAME + '/' + FILENAME + '.png', quality=100, subsampling=0)
+        read_file.close()
 
-            os.rename(
-                _DIRNAME + '/' + FILENAME + '.png',
-                _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
+        # Check if exist
+        if os.path.isfile(_DIRNAME + '/' + FILENAME + FORMAT_OUTPUT):
+            print(params_print('WARNING'))
+            print('Since the file is already present,')
+            print('the old version has been overwritten' + params_print('END'))
+            os.remove( _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
+            time.sleep(1)
 
-            print(params_print('OK'))
-            print('[Encrypt] Finish' + params_print('END'))
+        os.rename(
+            _DIRNAME + '/' + FILENAME + '.png',
+            _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
+
+        if colordir:
+            file_clean('./compressed.zip')
+
+        print(params_print('OK'))
+        print('[Encrypt] Finish' + params_print('END'))
