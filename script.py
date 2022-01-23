@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 import math
 import argparse
 from pathlib import Path
@@ -14,6 +15,7 @@ init()
 
 
 VERSION_CODE = 17
+DIRECTORY_OUTPUT = './decode/'
 FORMAT_OUTPUT = '.datacolors'
 PASSWORD_STK = False
 
@@ -108,6 +110,9 @@ if __name__ == '__main__':
     colorout = args.colorout
     password = args.password
     verbose = args.verbose
+    FILENAME = None
+    extension = None
+    _DIRNAME = None
 
     if colorfile is None and colordir is None:
         print(params_print('FAIL'))
@@ -130,14 +135,16 @@ if __name__ == '__main__':
         print('file not found: ' + colorfile + params_print('END'))
         sys.exit(0)
 
-    FILENAME = Path(colorfile).stem
-    extension = Path(colorfile).suffix
-    _DIRNAME = os.path.dirname(colorfile)
-    if _DIRNAME == '':
-        _DIRNAME = '.'
-
     print('-' * 46)
-    print('File: ' + colorfile)
+
+    if colorfile:
+        FILENAME = Path(colorfile).stem
+        extension = Path(colorfile).suffix
+        _DIRNAME = os.path.dirname(colorfile)
+        if _DIRNAME == '':
+            _DIRNAME = '.'
+
+        print('File: ' + colorfile)
 
     if colorin:
         if extension != FORMAT_OUTPUT:
@@ -186,9 +193,19 @@ if __name__ == '__main__':
         COLOR_ARR = COLOR_ARR[16:]
         file_size = int(hex_to_string(''.join(file_size_hex)))
 
+        type_hex = COLOR_ARR[:3]
+        COLOR_ARR = COLOR_ARR[3:]
+        TYPE_I = ''.join(type_hex)
+
         psw_hex = COLOR_ARR[:3]
         COLOR_ARR = COLOR_ARR[3:]
         PSW_I = ''.join(psw_hex)
+
+        # Decode Directory
+        if TYPE_I == 'FFFFFF':
+            print(params_print('FAIL'))
+            print('The function is not available at the moment' + params_print('END'))
+            sys.exit(1)
 
         if PSW_I == 'FFFFFF' and not password:
             print(params_print('FAIL'))
@@ -204,21 +221,32 @@ if __name__ == '__main__':
             COLOR_ARR = COLOR_ARR[:file_size]
 
         if password:
-            cnt, data_arr, n = (9, [], 3)
+            cnt, data_arr, n = (10, [], 3)
             for index in range(0, len(COLOR_ARR), n):
                 F_DATA_I = "".join(COLOR_ARR[index : index + n])
                 data_arr.append(data_encode(password, F_DATA_I, cnt))
                 cnt += 1
             COLOR_ARR = data_arr
 
-        bitout = open(colorfile.replace(FORMAT_OUTPUT, '') + '.decode' + extension, 'wb')
+        if not os.path.isdir(DIRECTORY_OUTPUT):
+            os.mkdir(DIRECTORY_OUTPUT)
+
+        bitout = open(DIRECTORY_OUTPUT + colorfile.replace(FORMAT_OUTPUT, '') + extension, 'wb')
         bitout.write(binascii.a2b_hex(''.join(COLOR_ARR)))
         bitout.close()
 
         print(params_print('OK'))
-        print('[Decrypt] Finish' + params_print('END'))
+        print('[Decrypt] Finish')
+        print('the data has been moved into the output folder: ' + DIRECTORY_OUTPUT + params_print(
+            'END'))
 
     if colorout:
+        if colordir:
+            # Decode Directory
+            print(params_print('FAIL'))
+            print('The function is not available at the moment' + params_print('END'))
+            sys.exit(1)
+
         file_size = os.path.getsize(colorfile)
 
         print('SIZE: ' + str(file_size) + ' bytes')
@@ -240,20 +268,31 @@ if __name__ == '__main__':
         print('file_size:', file_size_hex, len(file_size_hex))
         print('extension:', extension_hex, len(extension_hex))
 
-        PSW_O = '000000'
+        D_FRAME = extension_hex + file_size_hex
+
+        # Type bloc (file or directory)
+        if colordir:
+            print('type     : directory')
+            D_FRAME = D_FRAME + 'FFFFFF'
+        else:
+            print('type     : file')
+            D_FRAME = D_FRAME + '000000'
+
+        # Password bloc
         if password:
             print('password : ***')
-            PSW_O = 'FFFFFF'
+            D_FRAME = D_FRAME + 'FFFFFF'
         else:
             print('password : not set')
+            D_FRAME = D_FRAME + '000000'
 
-        CNT_O = 0
+        CNT_O, CNT_START = (0, int(len(D_FRAME)/6))
         with open(colorfile, 'rb') as f:
-            hexdata = extension_hex + file_size_hex + PSW_O + f.read().hex()
+            hexdata = D_FRAME + f.read().hex()
             data_arr, n = ([], 6)
             for index in range(0, len(hexdata), n):
                 f_data_o = hexdata[index : index + n]
-                if password and CNT_O > 9:
+                if password and CNT_O > CNT_START:
                     f_data_o = data_encode(password, f_data_o, CNT_O)
 
                 data_arr.append(f_data_o)
@@ -278,6 +317,15 @@ if __name__ == '__main__':
 
             im.putdata(COLOR_ARR)
             im.save(_DIRNAME + '/' + FILENAME + '.png', quality=100, subsampling=0)
+
+            # Check if exist
+            if os.path.isfile(_DIRNAME + '/' + FILENAME + FORMAT_OUTPUT):
+                print(params_print('WARNING'))
+                print('Since the file is already present,')
+                print('the old version has been overwritten' + params_print('END'))
+                os.remove( _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
+                time.sleep(1)
+
             os.rename(
                 _DIRNAME + '/' + FILENAME + '.png',
                 _DIRNAME + '/' + FILENAME + FORMAT_OUTPUT)
