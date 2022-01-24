@@ -230,11 +230,6 @@ if __name__ == '__main__':
         COLOR_ARR = COLOR_ARR[3:]
         PSW_I = ''.join(psw_hex)
 
-        # Decode Directory
-        if TYPE_I == 'FFFFFF':
-            print(params_print('WARNING'))
-            print('Automatic decompression is currently not available' + params_print('END'))
-
         if PSW_I == 'FFFFFF' and not password:
             print(params_print('FAIL'))
             print('Please set password' + params_print('END'))
@@ -262,6 +257,18 @@ if __name__ == '__main__':
         bitout = open(DIRECTORY_OUTPUT + colorfile.replace(FORMAT_OUTPUT, '') + extension, 'wb')
         bitout.write(binascii.a2b_hex(''.join(COLOR_ARR)))
         bitout.close()
+
+        if TYPE_I == 'FFFFFF':
+            try:
+                print(params_print('INFO'))
+                print('Automatic decompression...' + params_print('END'))
+                shutil.unpack_archive(DIRECTORY_OUTPUT + colorfile.replace(
+                    FORMAT_OUTPUT, '') + extension, DIRECTORY_OUTPUT)
+            except Exception as err:
+                print(params_print('WARNING'))
+                print('Decompress_return: ' + err + params_print('END'))
+            finally:
+                file_clean(DIRECTORY_OUTPUT + colorfile.replace(FORMAT_OUTPUT, '') + extension)
 
         print(params_print('OK'))
         print('[Decrypt] Finish')
