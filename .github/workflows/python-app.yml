@@ -32,7 +32,6 @@ jobs:
         sudo apt-get install libxdmcp-dev
         sudo apt-get install libpng-dev
         sudo apt-get install libwebp-dev
-        sudo apt-get install tree
 
     - name: Install dependencies
       run: |
@@ -59,7 +58,7 @@ jobs:
 
     - name: List Tree
       run: |
-        tree -d
+        tree -d /
 
     - name: Upload Release
       uses: ncipollo/release-action@v1
