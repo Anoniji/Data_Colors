@@ -32,25 +32,31 @@ jobs:
         sudo apt-get install libxdmcp-dev
         sudo apt-get install libpng-dev
         sudo apt-get install libwebp-dev
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f ./requirements.txt ]; then pip install -r ./requirements.txt; fi
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+
     - name: Build binary
       run: |
         python setup.py build
+
     - name: Archive Release
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
         filename: 'release.zip'
         directory: './_build/'
+        artifacts: "release.zip"
+
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
