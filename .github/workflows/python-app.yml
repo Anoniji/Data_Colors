@@ -56,12 +56,8 @@ jobs:
         filename: 'release.zip'
         directory: './_build/'
 
-    - name: List Tree
-      run: |
-        tree -d /
-
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "release.zip"
+        artifacts: "./_build/release.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
