@@ -17,8 +17,8 @@ class colors_encode:
     - init list: version_code, directory_output, format_output, password_stk, colorfile
                  colordir, _dirname, filename, extension, password, verbose
 
-    - def list: params_print, hex_to_string, rgb_to_hex, password_to_intlist, data_encode
-                file_clean, decoder
+    - def list: params_print, hex_to_rgb, string_to_hex, password_to_intlist, data_encode
+                file_clean, encoder
     """
 
     def __init__(self):
@@ -61,21 +61,6 @@ class colors_encode:
             rgb.append(decimal)
 
         return tuple(rgb)
-
-
-    def hex_to_string(self, hex_text):
-        '''
-        Convert hex to string
-        '''
-        return bytes.fromhex(hex_text).decode('ASCII').replace('\x00', '')
-
-
-    def rgb_to_hex(self, pxcolor):
-        '''
-        Convert rgb to hex
-        '''
-        r_color, g_color, b_color = pxcolor
-        return '%02X %02X %02X' % (r_color, g_color, b_color)
 
 
     def string_to_hex(self, text):
