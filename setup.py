@@ -21,7 +21,10 @@ setup(
     options={
         'build_exe': {
             'path': sys.path,
-            'includes': [],
+            'includes': [
+                'libs.encoder',
+                'libs.decoder',
+            ],
             'excludes': [],
             'packages': [],
             'optimize': 2,
