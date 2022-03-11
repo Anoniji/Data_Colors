@@ -14,8 +14,8 @@ init()
 class colors_encode:
 
     """Lib colors encode
-    - init list: version_code, directory_output, format_output, password_stk, colorfile
-                 colordir, _dirname, filename, extension, password, verbose
+    - init list: version_code, rgb_frame, directory_output, format_output, password_stk
+                 colorfile, colordir, _dirname, filename, extension, password, verbose
 
     - def list: params_print, hex_to_rgb, string_to_hex, password_to_intlist, data_encode
                 file_clean, encoder
@@ -24,6 +24,7 @@ class colors_encode:
     def __init__(self):
 
         self.version_code = 0
+        self.rgb_frame = ''
         self.directory_output = ''
         self.format_output = ''
         self.password_stk = False
@@ -141,7 +142,16 @@ class colors_encode:
         print('file_size:', file_size_hex, len(file_size_hex))
         print('extension:', extension_hex, len(extension_hex))
 
-        d_frame = extension_hex + file_size_hex
+        # D Frame init RGB
+        d_frame = self.rgb_frame
+
+        # Password bloc
+        if self.password:
+            print('password : ***')
+            d_frame = d_frame + 'FFFFFF'
+        else:
+            print('password : not set')
+            d_frame = d_frame + '000000'
 
         # Type bloc (file or directory)
         if self.colordir:
@@ -151,13 +161,8 @@ class colors_encode:
             print('type     : file')
             d_frame = d_frame + '000000'
 
-        # Password bloc
-        if self.password:
-            print('password : ***')
-            d_frame = d_frame + 'FFFFFF'
-        else:
-            print('password : not set')
-            d_frame = d_frame + '000000'
+        # File + extension bloc
+        d_frame = d_frame + extension_hex + file_size_hex
 
         cnt_o, cnt_start = (0, int(len(d_frame)/6))
 

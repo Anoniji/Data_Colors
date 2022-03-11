@@ -15,8 +15,8 @@ init()
 class colors_decode:
 
     """Lib colors decode
-    - init list: version_code, directory_output, format_output, password_stk, colorfile
-                 extension, password, verbose
+    - init list: version_code, rgb_frame, directory_output, format_output, password_stk
+                 colorfile, extension, password, verbose
 
     - def list: params_print, hex_to_string, rgb_to_hex, password_to_intlist, data_encode
                 file_clean, decoder
@@ -25,6 +25,7 @@ class colors_decode:
     def __init__(self):
 
         self.version_code = 0
+        self.rgb_frame = ''
         self.directory_output = ''
         self.format_output = ''
         self.password_stk = False
@@ -148,18 +149,17 @@ class colors_decode:
         print('GET DATA OK')
         print('-' * 46)
 
-        extension_hex = color_arr[:8]
-        color_arr = color_arr[8:]
-        extension = self.hex_to_string(''.join(extension_hex))
+        # D Frame init RGB
+        iframe_hex = color_arr[:9]
+        color_arr = color_arr[9:]
+        iframe = ''.join(iframe_hex)
 
-        file_size_hex = color_arr[:16]
-        color_arr = color_arr[16:]
-        file_size = int(self.hex_to_string(''.join(file_size_hex)))
+        if iframe != self.rgb_frame:
+            print(self.params_print('WARNING'))
+            print('The RGB validation is not correct,')
+            print('there may be decoding problems. ' + self.params_print('END'))
 
-        type_hex = color_arr[:3]
-        color_arr = color_arr[3:]
-        type_i = ''.join(type_hex)
-
+        # Password bloc
         psw_hex = color_arr[:3]
         color_arr = color_arr[3:]
         psw_i = ''.join(psw_hex)
@@ -168,6 +168,20 @@ class colors_decode:
             print(self.params_print('FAIL'))
             print('Please set password' + self.params_print('END'))
             sys.exit(1)
+
+        # Type bloc (file or directory)
+        type_hex = color_arr[:3]
+        color_arr = color_arr[3:]
+        type_i = ''.join(type_hex)
+
+        # File + extension bloc
+        extension_hex = color_arr[:8]
+        color_arr = color_arr[8:]
+        extension = self.hex_to_string(''.join(extension_hex))
+
+        file_size_hex = color_arr[:16]
+        color_arr = color_arr[16:]
+        file_size = int(self.hex_to_string(''.join(file_size_hex)))
 
         color_arr_len = len(color_arr)
 
@@ -178,7 +192,7 @@ class colors_decode:
             color_arr = color_arr[:file_size]
 
         if self.password:
-            cnt, data_arr, n = (10, [], 3)
+            cnt, data_arr, n = (13, [], 3)
             for index in range(0, len(color_arr), n):
                 f_data_i = "".join(color_arr[index : index + n])
                 data_arr.append(self.data_encode(self.password, f_data_i, cnt))

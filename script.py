@@ -13,10 +13,13 @@ init()
 from libs import decoder, encoder
 
 
-VERSION_CODE = 18
-DIRECTORY_OUTPUT = './decode/'
-FORMAT_OUTPUT = '.datacolors'
-PASSWORD_STK = False
+VERS_CODE, DIR_OUTPUT, FORMAT_OUTPUT, PSW_STK, RGB_FRAME = (
+    18,
+    './decode/',
+    '.datacolors',
+    False,
+    'FF000000FF00FF0000'
+)
 
 
 def params_print(key):
@@ -104,10 +107,11 @@ if __name__ == '__main__':
         color_decoder = decoder.colors_decode()
 
         # Decoder init vars
-        color_decoder.version_code = VERSION_CODE
-        color_decoder.directory_output = DIRECTORY_OUTPUT
+        color_decoder.version_code = VERS_CODE
+        color_decoder.rgb_frame = RGB_FRAME
+        color_decoder.directory_output = DIR_OUTPUT
         color_decoder.format_output = FORMAT_OUTPUT
-        color_decoder.password_stk = PASSWORD_STK
+        color_decoder.password_stk = PSW_STK
 
         color_decoder.colorfile = colorfile
         color_decoder.extension = extension
@@ -123,10 +127,11 @@ if __name__ == '__main__':
         color_encoder = encoder.colors_encode()
 
         # Encoder init vars
-        color_encoder.version_code = VERSION_CODE
-        color_encoder.directory_output = DIRECTORY_OUTPUT
+        color_encoder.version_code = VERS_CODE
+        color_encoder.rgb_frame = RGB_FRAME
+        color_encoder.directory_output = DIR_OUTPUT
         color_encoder.format_output = FORMAT_OUTPUT
-        color_encoder.password_stk = PASSWORD_STK
+        color_encoder.password_stk = PSW_STK
 
         color_encoder.colorfile = colorfile
         color_encoder.colordir = colordir
